@@ -1,8 +1,173 @@
-<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#111827"><link rel="manifest" href="manifest.webmanifest"><title>AOA Signal</title><style>body{margin:0;background:#0b1020;color:#fff;font-family:-apple-system,BlinkMacSystemFont,sans-serif}main{max-width:700px;margin:auto;padding:18px}.card{background:#141b2d;border:1px solid #273149;border-radius:18px;padding:16px;margin:12px 0}.sig{text-align:center;padding:25px;border-radius:18px;font-size:32px;font-weight:800}.wait{background:#222a3b}.long{background:#123d2a}.short{background:#4b1820}.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.m{background:#0f1626;padding:12px;border-radius:12px}.m b{display:block;font-size:17px;margin-top:5px}.muted{color:#9aa7bd;font-size:12px}button{background:#26344f;color:white;border:0;border-radius:12px;padding:10px 14px}canvas{width:100%;height:260px;background:#0d1424;border-radius:12px}</style></head><body><main><div style="display:flex;justify-content:space-between;align-items:center"><div><h1>₿ AOA Signal</h1><div class="muted">BTCUSDT · 1시간봉</div></div><button onclick="load()">새로고침</button></div><div class="card"><div id="sig" class="sig wait">분석 중…</div><div id="tm" class="muted" style="text-align:center;margin-top:8px"></div></div><div class="card"><div id="met" class="grid"></div></div><div class="card"><canvas id="chart" width="900" height="450"></canvas></div><div class="card"><b>조건</b><div id="checks" style="line-height:2;margin-top:8px"></div></div><div class="card muted">현재 규칙은 연구용 가설입니다. AOA가 실제로 이 지표를 사용했다고 확정한 것이 아닙니다. 주문 기능은 없습니다.</div></main><script>
-const api="https://api.binance.com/api/v3/klines";const $=x=>document.getElementById(x);
-function ema(a,n){let k=2/(n+1),o=[],p=a[0];o.push(p);for(let i=1;i<a.length;i++){p=a[i]*k+p*(1-k);o.push(p)}return o}
-function calc(a){let c=a.map(x=>+x[4]),h=a.map(x=>+x[2]),l=a.map(x=>+x[3]),v=a.map(x=>+x[5]);let e20=ema(c,20),e50=ema(c,50),e200=ema(c,200),d=c.map((x,i)=>i?x-c[i-1]:0),g=ema(d.map(x=>Math.max(x,0)),14),lo=ema(d.map(x=>Math.max(-x,0)),14),r=g.map((x,i)=>lo[i]?100-100/(1+x/lo[i]):100),m12=ema(c,12),m26=ema(c,26),mac=m12.map((x,i)=>x-m26[i]),ms=ema(mac,9),hist=mac.map((x,i)=>x-ms[i]),vr=v.map((x,i)=>{if(i<19)return NaN;let s=v.slice(i-19,i+1).reduce((a,b)=>a+b,0)/20;return x/s}),hi=c.map((_,i)=>i<20?NaN:Math.max(...h.slice(i-20,i))),ll=c.map((_,i)=>i<20?NaN:Math.min(...l.slice(i-20,i)));return{c,e20,e50,e200,r,hist,vr,hi,ll}}
-async function load(){try{let a=await(await fetch(api+"?symbol=BTCUSDT&interval=1h&limit=300")).json(),x=calc(a),i=a.length-2,L=x.e20[i]>x.e50[i]&&x.e50[i]>x.e200[i]&&x.r[i]>=45&&x.r[i]<=58&&x.vr[i]>=1.5&&x.hist[i]>0&&x.c[i]>x.hi[i],S=x.e20[i]<x.e50[i]&&x.e50[i]<x.e200[i]&&x.r[i]>=42&&x.r[i]<=55&&x.vr[i]>=1.5&&x.hist[i]<0&&x.c[i]<x.ll[i],s=L?"LONG":S?"SHORT":"WAIT";$("sig").className="sig "+s.toLowerCase();$("sig").textContent=s=="LONG"?"🟢 LONG SIGNAL":s=="SHORT"?"🔴 SHORT SIGNAL":"WAIT";$("tm").textContent=new Date(+a[i][0]).toLocaleString("ko-KR",{timeZone:"UTC"})+" UTC · 완성봉";let q=[["가격",x.c[i]],["EMA20",x.e20[i]],["EMA50",x.e50[i]],["EMA200",x.e200[i]],["RSI",x.r[i]],["MACD",x.hist[i]],["거래량배수",x.vr[i]+"x"]];$("met").innerHTML=q.map(z=>`<div class="m"><span class="muted">${z[0]}</span><b>${Number(z[1]).toFixed(2)}</b></div>`).join("");let cs=[["EMA 상승정배열",x.e20[i]>x.e50[i]&&x.e50[i]>x.e200[i]],["EMA 하락역배열",x.e20[i]<x.e50[i]&&x.e50[i]<x.e200[i]],["LONG RSI 45~58",x.r[i]>=45&&x.r[i]<=58],["SHORT RSI 42~55",x.r[i]>=42&&x.r[i]<=55],["거래량 ≥1.5x",x.vr[i]>=1.5],["MACD 양수",x.hist[i]>0],["MACD 음수",x.hist[i]<0],["20봉 고점 돌파",x.c[i]>x.hi[i]],["20봉 저점 이탈",x.c[i]<x.ll[i]]];$("checks").innerHTML=cs.map(z=>(z[1]?"🟢 ":"⚪ ")+z[0]).join("<br>");draw(a.slice(-80))}catch(e){$("sig").textContent="데이터 오류";$("tm").textContent=e.message}}
-function draw(a){let c=$("chart"),g=c.getContext("2d"),w=c.width,h=c.height,min=Math.min(...a.map(x=>+x[3])),max=Math.max(...a.map(x=>+x[2]));g.clearRect(0,0,w,h);g.strokeStyle="#6b7b99";g.lineWidth=3;g.beginPath();a.forEach((x,i)=>{let X=(i+1)*w/(a.length+1),Y=h-20-(+x[4]-min)/(max-min)*(h-40);i?g.lineTo(X,Y):g.moveTo(X,Y)});g.stroke()}load();setInterval(load,60000);
-if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js");
-</script></body></html>
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#111827">
+  <link rel="manifest" href="manifest.webmanifest">
+  <title>주식 & 암호화폐 Signal</title>
+  <style>
+    body { margin:0; background:#0b1020; color:#fff; font-family:-apple-system,BlinkMacSystemFont,sans-serif; }
+    main { max-width:700px; margin:auto; padding:18px; }
+    .card { background:#141b2d; border:1px solid #273149; border-radius:18px; padding:16px; margin:12px 0; }
+    .sig { text-align:center; padding:25px; border-radius:18px; font-size:32px; font-weight:800; }
+    .wait { background:#222a3b; color:#9aa7bd; }
+    .long { background:#123d2a; color:#34d399; }
+    .short { background:#4b1820; color:#f87171; }
+    .grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .m { background:#0f1626; padding:12px; border-radius:12px; }
+    .m b { display:block; font-size:17px; margin-top:5px; }
+    .muted { color:#9aa7bd; font-size:12px; }
+    input, select, button { background:#1e293b; color:white; border:1px solid #334155; border-radius:10px; padding:8px 12px; font-size:14px; }
+    button { background:#2563eb; font-weight:bold; cursor:pointer; }
+    .search-box { display:flex; gap:6px; margin-bottom:12px; }
+    canvas { width:100%; height:260px; background:#0d1424; border-radius:12px; margin-top:8px; }
+  </style>
+</head>
+<body>
+<main>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+    <div>
+      <h1 style="margin:0;font-size:22px">📈 Stock Signal PWA</h1>
+      <div class="muted">주식 및 암호화폐 실시간 시그널</div>
+    </div>
+  </div>
+
+  <!-- 종목 검색 바 -->
+  <div class="card search-box">
+    <input type="text" id="symbol" value="005930.KS" placeholder="티커 (예: 005930.KS, AAPL, BTC-USD)" style="flex:1">
+    <select id="interval">
+      <option value="1d">일봉</option>
+      <option value="1h" selected>1시간봉</option>
+      <option value="15m">15분봉</option>
+    </select>
+    <button onclick="load()">조회</button>
+  </div>
+
+  <div class="card">
+    <div id="sig" class="sig wait">분석 중…</div>
+    <div id="tm" class="muted" style="text-align:center;margin-top:8px"></div>
+  </div>
+
+  <div class="card"><div id="met" class="grid"></div></div>
+  <div class="card"><canvas id="chart" width="900" height="450"></canvas></div>
+  <div class="card">
+    <b>시그널 충족 조건</b>
+    <div id="checks" style="line-height:2;margin-top:8px"></div>
+  </div>
+</main>
+
+<script>
+const $=x=>document.getElementById(x);
+
+function ema(a,n){
+  let k=2/(n+1),o=[],p=a[0];
+  o.push(p);
+  for(let i=1;i<a.length;i++){p=a[i]*k+p*(1-k);o.push(p)}
+  return o;
+}
+
+function calc(c,h,l,v){
+  let e20=ema(c,20), e50=ema(c,50), e200=ema(c,200);
+  let d=c.map((x,i)=>i?x-c[i-1]:0);
+  let g=ema(d.map(x=>Math.max(x,0)),14), lo=ema(d.map(x=>Math.max(-x,0)),14);
+  let r=g.map((x,i)=>lo[i]?100-100/(1+x/lo[i]):100);
+  
+  let m12=ema(c,12), m26=ema(c,26);
+  let mac=m12.map((x,i)=>x-m26[i]), ms=ema(mac,9);
+  let hist=mac.map((x,i)=>x-ms[i]);
+  
+  let vr=v.map((x,i)=>{
+    if(i<19) return 1;
+    let s=v.slice(i-19,i+1).reduce((a,b)=>a+b,0)/20;
+    return s? x/s : 1;
+  });
+  
+  let hi=c.map((_,i)=>i<20?NaN:Math.max(...h.slice(i-20,i)));
+  let ll=c.map((_,i)=>i<20?NaN:Math.min(...l.slice(i-20,i)));
+  
+  return {c,e20,e50,e200,r,hist,vr,hi,ll};
+}
+
+async function load(){
+  let sym=$("symbol").value.trim().toUpperCase();
+  let interval=$("interval").value;
+  $("sig").textContent="데이터 수신 중…";
+  
+  try {
+    let url=`https://query1.finance.yahoo.com/v8/finance/chart/${sym}?range=3mo&interval=${interval}`;
+    let res = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`);
+    let data = await res.json();
+    let result = data.chart.result[0];
+    
+    let quotes = result.indicators.quote[0];
+    let timestamps = result.timestamp;
+    
+    let c=[], h=[], l=[], v=[];
+    for(let i=0; i<timestamps.length; i++){
+      if(quotes.close[i] != null){
+        c.push(quotes.close[i]);
+        h.push(quotes.high[i]);
+        l.push(quotes.low[i]);
+        v.push(quotes.volume[i]||0);
+      }
+    }
+    
+    let x=calc(c,h,l,v);
+    let i=c.length-1;
+    
+    let L = x.e20[i]>x.e50[i] && x.e50[i]>x.e200[i] && x.r[i]>=45 && x.r[i]<=75 && x.vr[i]>=1.3 && x.hist[i]>0 && x.c[i]>x.hi[i];
+    let S = x.e20[i]<x.e50[i] && x.e50[i]<x.e200[i] && x.r[i]>=25 && x.r[i]<=55 && x.vr[i]>=1.3 && x.hist[i]<0 && x.c[i]<x.ll[i];
+    let s = L ? "LONG" : S ? "SHORT" : "WAIT";
+    
+    $("sig").className="sig "+s.toLowerCase();
+    $("sig").textContent = s=="LONG"?"🟢 BUY / LONG":s=="SHORT"?"🔴 SELL / SHORT":"⚪ WAIT (관망)";
+    $("tm").textContent = new Date(timestamps[i]*1000).toLocaleString("ko-KR")+" 기준";
+    
+    let q=[
+      ["현재가", x.c[i].toLocaleString()],
+      ["EMA20", x.e20[i].toFixed(1)],
+      ["EMA50", x.e50[i].toFixed(1)],
+      ["RSI(14)", x.r[i].toFixed(1)],
+      ["MACD Hist", x.hist[i].toFixed(2)],
+      ["거래량 배수", x.vr[i].toFixed(2)+"x"]
+    ];
+    $("met").innerHTML=q.map(z=>`<div class="m"><span class="muted">${z[0]}</span><b>${z[1]}</b></div>`).join("");
+    
+    let cs=[
+      ["EMA 정배열 (상승추세)", x.e20[i]>x.e50[i] && x.e50[i]>x.e200[i]],
+      ["RSI 적정구간 (45~75)", x.r[i]>=45 && x.r[i]<=75],
+      ["거래량 분출 (≥1.3x)", x.vr[i]>=1.3],
+      ["MACD 모멘텀 양수", x.hist[i]>0],
+      ["20봉 최고가 돌파", x.c[i]>x.hi[i]]
+    ];
+    $("checks").innerHTML=cs.map(z=>(z[1]?"🟢 ":"⚪ ")+z[0]).join("<br>");
+    
+    draw(c.slice(-60));
+  } catch(e) {
+    $("sig").className="sig wait";
+    $("sig").textContent="조회 실패";
+    $("tm").textContent="티커명(예: 005930.KS, AAPL)을 확인하세요.";
+  }
+}
+
+function draw(c){
+  let cv=$("chart"), g=cv.getContext("2d"), w=cv.width, h=cv.height;
+  let min=Math.min(...c), max=Math.max(...c);
+  g.clearRect(0,0,w,h);
+  g.strokeStyle="#3b82f6";
+  g.lineWidth=4;
+  g.beginPath();
+  c.forEach((x,i)=>{
+    let X=(i+1)*w/(c.length+1);
+    let Y=h-30-(x-min)/(max-min)*(h-60);
+    i?g.lineTo(X,Y):g.moveTo(X,Y);
+  });
+  g.stroke();
+}
+
+load();
+if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
+</script>
+</body>
+</html>
