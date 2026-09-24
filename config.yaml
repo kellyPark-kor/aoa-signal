@@ -1,0 +1,60 @@
+# AOA Signal Stage 2
+# Research/alert only. NO trading or exchange API keys belong here.
+interval: 1h
+symbols:
+  - BTCUSDT
+
+# Public market-data REST endpoints. Binance documents api.binance.com and
+# data-api.binance.vision for public market data.
+rest_base_urls:
+  - https://api.binance.com
+  - https://data-api.binance.vision
+
+# Official Spot market-stream candidates. Keep only documented public market streams.
+ws_base_urls:
+  - wss://stream.binance.com:9443
+  - wss://data-stream.binance.vision
+
+rule_file: config.yaml
+research_rule: A
+use_rsi_filter: false
+
+# Preserved legacy settings. In the original signal(), ema_stack/macd_positive/
+# macd_negative were not read as switches. They remain for compatibility/documentation.
+long:
+  ema_stack: true
+  rsi_min: 45
+  rsi_max: 58
+  vol_min: 1.5
+  macd_positive: true
+  breakout: true
+short:
+  ema_stack: true
+  rsi_min: 42
+  rsi_max: 55
+  vol_min: 1.5
+  macd_negative: true
+  breakdown: true
+
+notifications:
+  telegram_enabled: true
+  ntfy_enabled: false
+  dry_run: false
+  max_per_symbol_per_day: 10
+  cooldown_minutes: 0
+  quiet_hours_kst:
+    enabled: false
+    start: "23:00"
+    end: "07:00"
+  # Default false: no signals from incomplete candles.
+  preliminary_signals: false
+
+runtime:
+  rest_timeout_seconds: 10
+  ws_connect_timeout_seconds: 15
+  history_limit: 500
+  stale_warning_seconds: 30
+  outage_alert_seconds: 300
+  proactive_reconnect_hours: 23
+  log_file: logs/aoa_signal.log
+  sqlite_path: data/aoa_signal.sqlite3
