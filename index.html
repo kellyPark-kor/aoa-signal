@@ -2,287 +2,172 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-  <meta name="theme-color" content="#101728">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#111827">
   <link rel="manifest" href="manifest.webmanifest">
-  <title>토스 스타일 실시간 시세 Signal PWA</title>
+  <title>주식 & 암호화폐 Signal</title>
   <style>
-    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    body { margin:0; padding:0; background:#0e1626; color:#ffffff; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
-    
-    /* 상단 헤더 & 검색바 */
-    .top-header { position:sticky; top:0; background:#0e1626; z-index:100; padding:12px 16px 8px; border-bottom:1px solid #1a2438; }
-    .search-box { display:flex; align-items:center; background:#1b263b; border-radius:12px; padding:8px 12px; gap:8px; }
-    .search-box input { background:none; border:none; color:#fff; font-size:15px; width:100%; outline:none; }
-    .search-box input::placeholder { color:#64748b; }
-    
-    /* 카테고리 탭 */
-    .category-tabs { display:flex; gap:16px; padding:12px 16px; overflow-x:auto; border-bottom:1px solid #1a2438; }
-    .category-tabs::-webkit-scrollbar { display:none; }
-    .tab-item { color:#8b9bb4; font-size:15px; font-weight:600; white-space:nowrap; cursor:pointer; padding-bottom:4px; }
-    .tab-item.active { color:#38ef7d; border-bottom:2px solid #38ef7d; }
-
-    /* 필터 칩 & 새로고침 */
-    .filter-bar { display:flex; gap:10px; padding:12px 16px; align-items:center; overflow-x:auto; }
-    .filter-chip { background:#1b263b; color:#94a3b8; font-size:13px; font-weight:500; padding:6px 14px; border-radius:20px; white-space:nowrap; cursor:pointer; }
-    .filter-chip.active { background:#2563eb; color:#fff; font-weight:600; }
-    .refresh-btn { margin-left:auto; background:#1e293b; color:#38ef7d; border:1px solid #334155; padding:5px 12px; border-radius:12px; font-size:12px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:4px; white-space:nowrap; }
-
-    /* 종목 리스트 */
-    .stock-list { padding:0 16px 80px; }
-    .stock-item { display:flex; align-items:center; justify-content:space-between; padding:14px 0; border-bottom:1px solid #162032; cursor:pointer; }
-    .stock-rank { font-size:15px; font-weight:700; color:#64748b; width:28px; text-align:center; }
-    .stock-info { flex:1; margin-left:8px; overflow:hidden; }
-    .stock-title { font-size:15px; font-weight:600; display:flex; align-items:center; gap:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .stock-sub { font-size:12px; color:#8b9bb4; margin-top:2px; }
-    
-    /* 시그널 및 가격 */
-    .stock-right { text-align:right; display:flex; flex-direction:column; align-items:flex-end; gap:3px; min-width:95px; }
-    .price { font-size:14px; font-weight:600; }
-    .change { font-size:12px; font-weight:600; }
-    .up { color:#ff4d4d; }   /* 상승 빨강 */
-    .down { color:#4d94ff; } /* 하락 파랑 */
-
-    .sig-badge { padding:3px 7px; border-radius:6px; font-size:11px; font-weight:700; flex-shrink:0; }
-    .sig-buy { background:rgba(56, 239, 125, 0.15); color:#38ef7d; border:1px solid rgba(56, 239, 125, 0.4); }
-    .sig-sell { background:rgba(255, 77, 77, 0.15); color:#ff4d4d; border:1px solid rgba(255, 77, 77, 0.4); }
-    .sig-wait { background:rgba(148, 163, 184, 0.15); color:#94a3b8; }
-
-    /* 로딩 상태 */
-    .loading-spinner { text-align:center; padding:30px; color:#64748b; font-size:14px; }
-
-    /* 하단 네비게이션 */
-    .bottom-nav { position:fixed; bottom:0; left:0; right:0; background:#0e1626; border-top:1px solid #1a2438; display:flex; justify-content:space-around; padding:8px 0; z-index:100; }
-    .nav-item { flex:1; text-align:center; color:#64748b; font-size:11px; }
-    .nav-item.active { color:#fff; font-weight:600; }
-    .nav-icon { font-size:18px; display:block; margin-bottom:2px; }
+    body { margin:0; background:#0b1020; color:#fff; font-family:-apple-system,BlinkMacSystemFont,sans-serif; }
+    main { max-width:700px; margin:auto; padding:18px; }
+    .card { background:#141b2d; border:1px solid #273149; border-radius:18px; padding:16px; margin:12px 0; }
+    .sig { text-align:center; padding:25px; border-radius:18px; font-size:32px; font-weight:800; }
+    .wait { background:#222a3b; color:#9aa7bd; }
+    .long { background:#123d2a; color:#34d399; }
+    .short { background:#4b1820; color:#f87171; }
+    .grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .m { background:#0f1626; padding:12px; border-radius:12px; }
+    .m b { display:block; font-size:17px; margin-top:5px; }
+    .muted { color:#9aa7bd; font-size:12px; }
+    input, select, button { background:#1e293b; color:white; border:1px solid #334155; border-radius:10px; padding:8px 12px; font-size:14px; }
+    button { background:#2563eb; font-weight:bold; cursor:pointer; }
+    .search-box { display:flex; gap:6px; margin-bottom:12px; }
+    canvas { width:100%; height:260px; background:#0d1424; border-radius:12px; margin-top:8px; }
   </style>
 </head>
 <body>
-
-  <!-- 상단 검색바 -->
-  <div class="top-header">
-    <div class="search-box">
-      <span style="color:#64748b">🔍</span>
-      <input type="text" id="searchInput" placeholder="전 세계 주식/코인 검색 (예: 애플, TSLA, 005930, BTC)" oninput="handleSearchInput()">
+<main>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+    <div>
+      <h1 style="margin:0;font-size:22px">📈 Stock Signal PWA</h1>
+      <div class="muted">주식 및 암호화폐 실시간 시그널</div>
     </div>
   </div>
 
-  <!-- 카테고리 탭 -->
-  <div class="category-tabs">
-    <div class="tab-item active" onclick="setCategory('all', this)">전체인기</div>
-    <div class="tab-item" onclick="setCategory('kr', this)">국내주식</div>
-    <div class="tab-item" onclick="setCategory('us', this)">해외주식</div>
-    <div class="tab-item" onclick="setCategory('crypto', this)">가상자산</div>
+  <!-- 종목 검색 바 -->
+  <div class="card search-box">
+    <input type="text" id="symbol" value="005930.KS" placeholder="티커 (예: 005930.KS, AAPL, BTC-USD)" style="flex:1">
+    <select id="interval">
+      <option value="1d">일봉</option>
+      <option value="1h" selected>1시간봉</option>
+      <option value="15m">15분봉</option>
+    </select>
+    <button onclick="load()">조회</button>
   </div>
 
-  <!-- 필터/정렬 칩 & 실시간 갱신 버튼 -->
-  <div class="filter-bar">
-    <div class="filter-chip active" onclick="setFilter('all', this)">전체보기</div>
-    <div class="filter-chip" onclick="setFilter('buy', this)">🟢 매수신호</div>
-    <div class="filter-chip" onclick="setFilter('sell', this)">🔴 매도신호</div>
-    <button class="refresh-btn" onclick="fetchRealtimeQuotes()">⚡ 실시간 갱신</button>
+  <div class="card">
+    <div id="sig" class="sig wait">분석 중…</div>
+    <div id="tm" class="muted" style="text-align:center;margin-top:8px"></div>
   </div>
 
-  <!-- 토스 스타일 전종목 스크롤 리스트 -->
-  <div class="stock-list" id="stockList"></div>
-
-  <!-- 하단 네비게이션 바 -->
-  <div class="bottom-nav">
-    <div class="nav-item active"><span class="nav-icon">📈</span>실시간 차트</div>
-    <div class="nav-item"><span class="nav-icon">⭐</span>관심종목</div>
-    <div class="nav-item"><span class="nav-icon">🔔</span>알림 설정</div>
+  <div class="card"><div id="met" class="grid"></div></div>
+  <div class="card"><canvas id="chart" width="900" height="450"></canvas></div>
+  <div class="card">
+    <b>시그널 충족 조건</b>
+    <div id="checks" style="line-height:2;margin-top:8px"></div>
   </div>
+</main>
 
 <script>
-// 기본 인기 모니터링 목록
-const defaultPopularStocks = [
-  { sym:"SOXS", name:"디렉시온 반도체 곰 3X", price:"-", change:"0.0%", isUp:true, type:"us" },
-  { sym:"SOXL", name:"디렉시온 반도체 불 3X", price:"-", change:"0.0%", isUp:true, type:"us" },
-  { sym:"005930.KS", name:"삼성전자", price:"-", change:"0.0%", isUp:true, type:"kr" },
-  { sym:"000660.KS", name:"SK하이닉스", price:"-", change:"0.0%", isUp:true, type:"kr" },
-  { sym:"TSLA", name:"테슬라", price:"-", change:"0.0%", isUp:true, type:"us" },
-  { sym:"NVDA", name:"엔비디아", price:"-", change:"0.0%", isUp:true, type:"us" },
-  { sym:"BTC-USD", name:"비트코인", price:"-", change:"0.0%", isUp:true, type:"crypto" },
-  { sym:"ETH-USD", name:"이더리움", price:"-", change:"0.0%", isUp:true, type:"crypto" },
-  { sym:"AAPL", name:"애플", price:"-", change:"0.0%", isUp:true, type:"us" },
-  { sym:"035420.KS", name:"NAVER", price:"-", change:"0.0%", isUp:true, type:"kr" },
-  { sym:"035720.KS", name:"카카오", price:"-", change:"0.0%", isUp:true, type:"kr" },
-  { sym:"MSFT", name:"마이크로소프트", price:"-", change:"0.0%", isUp:true, type:"us" },
-  { sym:"PLTR", name:"팔란티어", price:"-", change:"0.0%", isUp:true, type:"us" }
-];
+const $=x=>document.getElementById(x);
 
-let currentCategory = 'all';
-let currentFilter = 'all';
-let searchTimeout = null;
-let activeStockList = [...defaultPopularStocks];
-
-// 기술적 지표 시뮬레이션 계산
-function getSignalForStock(sym) {
-  let hash = 0;
-  for (let i = 0; i < sym.length; i++) hash = sym.charCodeAt(i) + ((hash << 5) - hash);
-  let rsi = Math.abs(hash % 50) + 30; // 30~80
-  let vr = (Math.abs(hash % 20) / 10 + 0.8).toFixed(1); // 0.8~2.8x
-  
-  let signal = "WAIT";
-  if (rsi > 60 && vr >= 1.3) signal = "BUY";
-  else if (rsi < 40 && vr >= 1.2) signal = "SELL";
-  
-  return { rsi, vr, signal };
+function ema(a,n){
+  let k=2/(n+1),o=[],p=a[0];
+  o.push(p);
+  for(let i=1;i<a.length;i++){p=a[i]*k+p*(1-k);o.push(p)}
+  return o;
 }
 
-// 야후 파이낸스 API를 통한 실시간 시세 연동 (CORS 프록시)
-async function fetchRealtimeQuotes() {
-  const symbols = activeStockList.map(s => s.sym).join(",");
-  if (!symbols) return;
-
-  try {
-    let targetUrl = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(symbols)}`;
-    let proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
-    
-    let res = await fetch(proxyUrl);
-    let data = await res.json();
-    
-    if (data.quoteResponse && data.quoteResponse.result) {
-      const results = data.quoteResponse.result;
-      
-      activeStockList.forEach(item => {
-        let realQuote = results.find(q => q.symbol === item.sym);
-        if (realQuote) {
-          let priceVal = realQuote.regularMarketPrice || realQuote.price || 0;
-          let changePct = realQuote.regularMarketChangePercent || 0;
-          let currency = realQuote.currency || "USD";
-          
-          if (currency === "KRW" || item.sym.endsWith(".KS") || item.sym.endsWith(".KQ")) {
-            item.price = Math.round(priceVal).toLocaleString('ko-KR') + "원";
-          } else {
-            item.price = "$" + priceVal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-          }
-          
-          item.isUp = changePct >= 0;
-          item.change = (changePct >= 0 ? "+" : "") + changePct.toFixed(2) + "%";
-        }
-      });
-      renderList();
-    }
-  } catch (e) {
-    console.error("Realtime Quote Error", e);
-  }
+function calc(c,h,l,v){
+  let e20=ema(c,20), e50=ema(c,50), e200=ema(c,200);
+  let d=c.map((x,i)=>i?x-c[i-1]:0);
+  let g=ema(d.map(x=>Math.max(x,0)),14), lo=ema(d.map(x=>Math.max(-x,0)),14);
+  let r=g.map((x,i)=>lo[i]?100-100/(1+x/lo[i]):100);
+  
+  let m12=ema(c,12), m26=ema(c,26);
+  let mac=m12.map((x,i)=>x-m26[i]), ms=ema(mac,9);
+  let hist=mac.map((x,i)=>x-ms[i]);
+  
+  let vr=v.map((x,i)=>{
+    if(i<19) return 1;
+    let s=v.slice(i-19,i+1).reduce((a,b)=>a+b,0)/20;
+    return s? x/s : 1;
+  });
+  
+  let hi=c.map((_,i)=>i<20?NaN:Math.max(...h.slice(i-20,i)));
+  let ll=c.map((_,i)=>i<20?NaN:Math.min(...l.slice(i-20,i)));
+  
+  return {c,e20,e50,e200,r,hist,vr,hi,ll};
 }
 
-// 검색 API
-async function searchGlobalStocks(query) {
+async function load(){
+  let sym=$("symbol").value.trim().toUpperCase();
+  let interval=$("interval").value;
+  $("sig").textContent="데이터 수신 중…";
+  
   try {
-    let url = `https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(query)}&quotesCount=15`;
-    let proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
-    let res = await fetch(proxyUrl);
+    let url=`https://query1.finance.yahoo.com/v8/finance/chart/${sym}?range=3mo&interval=${interval}`;
+    let res = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`);
     let data = await res.json();
+    let result = data.chart.result[0];
     
-    if (data.quotes && data.quotes.length > 0) {
-      return data.quotes.map(q => {
-        let isKr = q.symbol.endsWith(".KS") || q.symbol.endsWith(".KQ");
-        let isCrypto = q.quoteType === "CRYPTOCURRENCY" || q.symbol.includes("-USD");
-        let type = isKr ? "kr" : isCrypto ? "crypto" : "us";
-        return {
-          sym: q.symbol,
-          name: q.shortname || q.longname || q.symbol,
-          price: "조회중…",
-          change: "0.0%",
-          isUp: true,
-          type: type
-        };
-      });
+    let quotes = result.indicators.quote[0];
+    let timestamps = result.timestamp;
+    
+    let c=[], h=[], l=[], v=[];
+    for(let i=0; i<timestamps.length; i++){
+      if(quotes.close[i] != null){
+        c.push(quotes.close[i]);
+        h.push(quotes.high[i]);
+        l.push(quotes.low[i]);
+        v.push(quotes.volume[i]||0);
+      }
     }
+    
+    let x=calc(c,h,l,v);
+    let i=c.length-1;
+    
+    let L = x.e20[i]>x.e50[i] && x.e50[i]>x.e200[i] && x.r[i]>=45 && x.r[i]<=75 && x.vr[i]>=1.3 && x.hist[i]>0 && x.c[i]>x.hi[i];
+    let S = x.e20[i]<x.e50[i] && x.e50[i]<x.e200[i] && x.r[i]>=25 && x.r[i]<=55 && x.vr[i]>=1.3 && x.hist[i]<0 && x.c[i]<x.ll[i];
+    let s = L ? "LONG" : S ? "SHORT" : "WAIT";
+    
+    $("sig").className="sig "+s.toLowerCase();
+    $("sig").textContent = s=="LONG"?"🟢 BUY / LONG":s=="SHORT"?"🔴 SELL / SHORT":"⚪ WAIT (관망)";
+    $("tm").textContent = new Date(timestamps[i]*1000).toLocaleString("ko-KR")+" 기준";
+    
+    let q=[
+      ["현재가", x.c[i].toLocaleString()],
+      ["EMA20", x.e20[i].toFixed(1)],
+      ["EMA50", x.e50[i].toFixed(1)],
+      ["RSI(14)", x.r[i].toFixed(1)],
+      ["MACD Hist", x.hist[i].toFixed(2)],
+      ["거래량 배수", x.vr[i].toFixed(2)+"x"]
+    ];
+    $("met").innerHTML=q.map(z=>`<div class="m"><span class="muted">${z[0]}</span><b>${z[1]}</b></div>`).join("");
+    
+    let cs=[
+      ["EMA 정배열 (상승추세)", x.e20[i]>x.e50[i] && x.e50[i]>x.e200[i]],
+      ["RSI 적정구간 (45~75)", x.r[i]>=45 && x.r[i]<=75],
+      ["거래량 분출 (≥1.3x)", x.vr[i]>=1.3],
+      ["MACD 모멘텀 양수", x.hist[i]>0],
+      ["20봉 최고가 돌파", x.c[i]>x.hi[i]]
+    ];
+    $("checks").innerHTML=cs.map(z=>(z[1]?"🟢 ":"⚪ ")+z[0]).join("<br>");
+    
+    draw(c.slice(-60));
   } catch(e) {
-    console.error("Search failed", e);
+    $("sig").className="sig wait";
+    $("sig").textContent="조회 실패";
+    $("tm").textContent="티커명(예: 005930.KS, AAPL)을 확인하세요.";
   }
-  return [];
 }
 
-function handleSearchInput() {
-  clearTimeout(searchTimeout);
-  let query = document.getElementById("searchInput").value.trim();
-  
-  if (!query) {
-    activeStockList = [...defaultPopularStocks];
-    fetchRealtimeQuotes();
-    return;
-  }
-
-  document.getElementById("stockList").innerHTML = '<div class="loading-spinner">⚡ 전 세계 거래소 실시간 조회 중…</div>';
-  
-  searchTimeout = setTimeout(async () => {
-    let results = await searchGlobalStocks(query);
-    if(results.length > 0) {
-      activeStockList = results;
-      await fetchRealtimeQuotes();
-    } else {
-      activeStockList = defaultPopularStocks.filter(s => 
-        s.name.toLowerCase().includes(query.toLowerCase()) || 
-        s.sym.toLowerCase().includes(query.toLowerCase())
-      );
-      renderList();
-    }
-  }, 400);
-}
-
-function renderList() {
-  const listEl = document.getElementById("stockList");
-  listEl.innerHTML = "";
-
-  const filtered = activeStockList.filter(s => {
-    const matchCat = currentCategory === 'all' || s.type === currentCategory;
-    const sigInfo = getSignalForStock(s.sym);
-    const matchSig = currentFilter === 'all' || 
-                     (currentFilter === 'buy' && sigInfo.signal === 'BUY') ||
-                     (currentFilter === 'sell' && sigInfo.signal === 'SELL');
-    return matchCat && matchSig;
+function draw(c){
+  let cv=$("chart"), g=cv.getContext("2d"), w=cv.width, h=cv.height;
+  let min=Math.min(...c), max=Math.max(...c);
+  g.clearRect(0,0,w,h);
+  g.strokeStyle="#3b82f6";
+  g.lineWidth=4;
+  g.beginPath();
+  c.forEach((x,i)=>{
+    let X=(i+1)*w/(c.length+1);
+    let Y=h-30-(x-min)/(max-min)*(h-60);
+    i?g.lineTo(X,Y):g.moveTo(X,Y);
   });
-
-  if(filtered.length === 0) {
-    listEl.innerHTML = '<div style="text-align:center; padding:40px; color:#64748b;">조건에 맞는 종목이 없습니다.</div>';
-    return;
-  }
-
-  filtered.forEach((s, idx) => {
-    let sigInfo = getSignalForStock(s.sym);
-    let sigText = sigInfo.signal === 'BUY' ? '🟢 매수신호' : sigInfo.signal === 'SELL' ? '🔴 매도신호' : '⚪ 관망';
-    let sigClass = sigInfo.signal === 'BUY' ? 'sig-buy' : sigInfo.signal === 'SELL' ? 'sig-sell' : 'sig-wait';
-    let changeClass = s.isUp ? 'up' : 'down';
-
-    const item = document.createElement("div");
-    item.className = "stock-item";
-    item.innerHTML = `
-      <div class="stock-rank">${idx + 1}</div>
-      <div class="stock-info">
-        <div class="stock-title">${s.name} <span class="sig-badge ${sigClass}">${sigText}</span></div>
-        <div class="stock-sub">${s.sym} · RSI ${sigInfo.rsi} · 거래량 ${sigInfo.vr}x</div>
-      </div>
-      <div class="stock-right">
-        <div class="price">${s.price}</div>
-        <div class="change ${changeClass}">${s.change}</div>
-      </div>
-    `;
-    listEl.appendChild(item);
-  });
+  g.stroke();
 }
 
-function setCategory(cat, el) {
-  currentCategory = cat;
-  document.querySelectorAll('.category-tabs .tab-item').forEach(e => e.classList.remove('active'));
-  el.classList.add('active');
-  renderList();
-}
-
-function setFilter(filt, el) {
-  currentFilter = filt;
-  document.querySelectorAll('.filter-bar .filter-chip').forEach(e => e.classList.remove('active'));
-  el.classList.add('active');
-  renderList();
-}
-
-// 최초 로드 시 실시간 시세 호출
-fetchRealtimeQuotes();
+load();
+if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
 </script>
 </body>
 </html>
